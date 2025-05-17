@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Online</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: rgba(255, 255, 255, 0.9);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-attachment: fixed;
+            padding: 20px 0;
+        }
+
+        .container {
+            max-width: 420px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #fff;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .alert-success {
+            background: rgba(34, 222, 123, 0.2);
+            color: #d4ffe3;
+            border-color: rgba(34, 222, 123, 0.3);
+        }
+
+        .alert-danger {
+            background: rgba(255, 76, 76, 0.2);
+            color: #ffd4d4;
+            border-color: rgba(255, 76, 76, 0.3);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .user-info img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info .details h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .user-info .details p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .location-info {
+            font-size: 14px;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+
+        #attendanceHistoryContainer {
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        #attendanceHistoryContainer::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #attendanceHistoryContainer::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #attendanceHistoryContainer::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+        }
+
+        .history-item {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .history-item p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .history-item .time {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .tab.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .file-input-container {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-container input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        #fileNameDisplay {
+            margin-top: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sistem Absensi Online</h1>
+            <p>Catat kehadiran dengan lokasi GPS</p>
+        </div>
+
+        <!-- Login Section -->
+        <div id="loginSection" class="card">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" class="form-control" placeholder="Masukkan username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Masukkan password">
+            </div>
+            <div class="form-group">
+                <button id="loginBtn" class="btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        style="margin-right: 5px;" viewBox="0 0 16 16">
+                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+                        <path fill-rule="evenodd"
+                            d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
+                    </svg>
+                    Login
+                </button>
+            </div>
+            <div class="form-group">
+                <p style="text-align: center; margin: 15px 0; color: rgba(255, 255, 255, 0.7);">atau</p>
+                <div class="file-input-container">
+                    <label class="file-input-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            style="margin-right: 5px;" viewBox="0 0 16 16">
+                            <path
+                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z" />
+                        </svg>
+                        Upload Database Spreadsheet
+                    </label>
+                    <input type="file" id="databaseUpload" accept=".xlsx,.xls,.csv">
+                </div>
+                <div id="fileNameDisplay"></div>
+            </div>
+            <div id="loginAlert"></div>
+        </div>
+
+        <!-- Main Application -->
+        <div id="appSection" style="display: none;">
+            <div class="tabs">
+                <div class="tab active" data-tab="attendance">Absensi</div>
+                <div class="tab" data-tab="history">Riwayat</div>
+                <div class="tab" data-tab="profile">Profil</div>
+            </div>
+
+            <!-- Attendance Tab -->
+            <div id="attendanceTab" class="tab-content active">
+                <div class="card">
+                    <div class="user-info">
+                        <img src="/api/placeholder/100/100" alt="User">
+                        <div class="details">
+                            <h3 id="userNameDisplay">Nama Pengguna</h3>
+                            <p id="userPositionDisplay">Jabatan</p>
+                        </div>
+                    </div>
+                    <div class="location-info">
+                        <p><i class="icon"></i> <span id="locationDisplay">Mendapatkan lokasi...</span></p>
+                    </div>
+                    <div id="attendanceAlert"></div>
+                    <div class="form-group">
+                        <button id="checkInBtn" class="btn"
+                            style="background: rgba(46, 213, 115, 0.3); border-color: rgba(46, 213, 115, 0.4);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                style="margin-right: 5px;" viewBox="0 0 16 16">
+                                <path
+                                    d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                            </svg>
+                            Check In
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <button id="checkOutBtn" class="btn"
+                            style="background: rgba(231, 76, 60, 0.3); border-color: rgba(231, 76, 60, 0.4);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                style="margin-right: 5px;" viewBox="0 0 16 16">
+                                <path
+                                    d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                            </svg>
+                            Check Out
+                        </button>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <div class="status-info">
+                            <span>Status</span>
+                            <span id="statusDisplay">Belum Check In</span>
+                        </div>
+                        <div class="status-info">
+                            <span>Check In</span>
+                            <span id="checkInTimeDisplay">-</span>
+                        </div>
+                        <div class="status-info">
+                            <span>Check Out</span>
+                            <span id="checkOutTimeDisplay">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="historyTab" class="tab-content">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Riwayat Absensi</h3>
+                    <div id="attendanceHistoryContainer">
+                        <!-- History will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="profileTab" class="tab-content">
+                <div class="card">
+                    <div class="user-info" style="margin-bottom: 25px;">
+                        <img src="/api/placeholder/100/100" alt="User" style="width: 80px; height: 80px;">
+                        <div class="details">
+                            <h3 id="profileNameDisplay">Nama Pengguna</h3>
+                            <p id="profilePositionDisplay">Jabatan</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <p id="profileEmailDisplay">email@example.com</p>
+                    </div>
+                    <div class="form-group">
+                        <label>No. Karyawan</label>
+                        <p id="profileIdDisplay">KRY001</p>
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <button id="logoutBtn" class="btn" style="background-color: #6c757d;">Logout</button>
+                </div>
+                <div class="form-group">
+                    <button id="exportDataBtn" class="btn" style="background-color: #28a745;">Export Data
+                        Absensi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let database = {
+            users: [
+                { id: "ADM", username: "admin", password: "admin123", name: "Admin", position: "Administrator", email: "admin@example.com", department: "IT" },
+                { id: "KRY001", username: "hidayat", password: "123", name: "Hidayat", position: "Checker", email: "user@example.com" }
+            ],
+            attendance: []
+        };
+        let userLocation = {
+            latitude: null,
+            longitude: null,
+            address: "Lokasi tidak diketahui"
+        };
+        let todayAttendance = null;
+
+        // DOM Elements
+        const loginSection = document.getElementById("loginSection");
+        const appSection = document.getElementById("appSection");
+        const loginBtn = document.getElementById("loginBtn");
+        const loginAlert = document.getElementById("loginAlert");
+        const checkInBtn = document.getElementById("checkInBtn");
+        const checkOutBtn = document.getElementById("checkOutBtn");
+        const attendanceAlert = document.getElementById("attendanceAlert");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const exportDataBtn = document.getElementById("exportDataBtn");
+        const databaseUpload = document.getElementById("databaseUpload");
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+
+        // Initialize application
+        document.addEventListener("DOMContentLoaded", function () {
+            initApp();
+        });
+
+        function initApp() {
+            // Tab functionality
+            const tabs = document.querySelectorAll(".tab");
+            tabs.forEach(tab => {
+                tab.addEventListener("click", function () {
+                    const tabId = this.getAttribute("data-tab");
+                    switchTab(tabId);
+                });
+            });
+
+            // Login functionality
+            loginBtn.addEventListener("click", attemptLogin);
+
+            // Attendance functionality
+            checkInBtn.addEventListener("click", checkIn);
+            checkOutBtn.addEventListener("click", checkOut);
+
+            // Logout functionality
+            logoutBtn.addEventListener("click", logout);
+
+            // Export functionality
+            exportDataBtn.addEventListener("click", exportAttendanceData);
+
+            // Database upload
+            databaseUpload.addEventListener("change", handleDatabaseUpload);
+
+            // Get user location
+            getLocation();
+
+            // Check for saved session
+            checkSavedSession();
+        }
+
+        function checkSavedSession() {
+            const savedUser = localStorage.getItem("currentUser");
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                const savedAttendance = localStorage.getItem("attendanceData");
+                if (savedAttendance) {
+                    database.attendance = JSON.parse(savedAttendance);
+                }
+                showApp();
+            }
+        }
+
+        function switchTab(tabId) {
+            // Remove active class from all tabs and content
+            document.querySelectorAll(".tab").forEach(tab => {
+                tab.classList.remove("active");
+            });
+            document.querySelectorAll(".tab-content").forEach(content => {
+                content.classList.remove("active");
+            });
+
+            // Add active class to selected tab and content
+            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add("active");
+            document.getElementById(`${tabId}Tab`).classList.add("active");
+
+            // Refresh data based on tab
+            if (tabId === "history") {
+                loadAttendanceHistory();
+            }
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        userLocation.latitude = position.coords.latitude;
+                        userLocation.longitude = position.coords.longitude;
+
+                        // Try to get address from coordinates
+                        getAddressFromCoordinates(userLocation.latitude, userLocation.longitude);
+
+                        // Update location display
+                        document.getElementById("locationDisplay").textContent = `Lat: ${userLocation.latitude.toFixed(6)}, Long: ${userLocation.longitude.toFixed(6)}`;
+                    },
+                    error => {
+                        console.error("Error getting location:", error);
+                        document.getElementById("locationDisplay").textContent = "Tidak dapat mengakses lokasi. Harap izinkan akses lokasi.";
+                    }
+                );
+            } else {
+                document.getElementById("locationDisplay").textContent = "Geolocation tidak didukung oleh browser ini.";
+            }
+        }
+
+        function getAddressFromCoordinates(lat, lng) {
+            // This would typically use a reverse geocoding API
+            // For demo purposes, we'll just use the coordinates
+            userLocation.address = `Lokasi: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        }
+
+        function handleDatabaseUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            fileNameDisplay.textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    // Assume the first sheet contains users
+                    const usersSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const users = XLSX.utils.sheet_to_json(usersSheet);
+
+                    // Assume the second sheet contains attendance (if exists)
+                    if (workbook.SheetNames.length > 1) {
+                        const attendanceSheet = workbook.Sheets[workbook.SheetNames[1]];
+                        const attendance = XLSX.utils.sheet_to_json(attendanceSheet);
+                        database.attendance = attendance;
+                    }
+
+                    database.users = users;
+                    showAlert(loginAlert, "Database berhasil diupload!", "success");
+                } catch (error) {
+                    console.error("Error reading spreadsheet:", error);
+                    showAlert(loginAlert, "Gagal membaca file. Pastikan format file benar.", "danger");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function attemptLogin() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            if (!username || !password) {
+                showAlert(loginAlert, "Username dan password harus diisi!", "danger");
+                return;
+            }
+
+            const user = database.users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                localStorage.setItem("currentUser", JSON.stringify(user));
+                showApp();
+            } else {
+                showAlert(loginAlert, "Username atau password salah!", "danger");
+            }
+        }
+
+        function showApp() {
+            // Hide login section and show app section
+            loginSection.style.display = "none";
+            appSection.style.display = "block";
+
+            // Update user information
+            document.getElementById("userNameDisplay").textContent = currentUser.name;
+            document.getElementById("userPositionDisplay").textContent = currentUser.position;
+            document.getElementById("profileNameDisplay").textContent = currentUser.name;
+            document.getElementById("profilePositionDisplay").textContent = currentUser.position;
+            document.getElementById("profileEmailDisplay").textContent = currentUser.email || "-";
+            document.getElementById("profileIdDisplay").textContent = currentUser.id || "-";
+            document.getElementById("profileDeptDisplay").textContent = currentUser.department || "-";
+
+            // Load today's attendance record
+            checkTodayAttendance();
+
+            // Load attendance history
+            loadAttendanceHistory();
+        }
+
+        function checkTodayAttendance() {
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+            todayAttendance = database.attendance.find(a =>
+                a.userId === currentUser.id &&
+                a.date === today
+            );
+
+            if (todayAttendance) {
+                document.getElementById("statusDisplay").textContent = todayAttendance.checkOut ? "Selesai" : "Sedang Bekerja";
+                document.getElementById("checkInTimeDisplay").textContent = formatTime(todayAttendance.checkIn);
+                document.getElementById("checkOutTimeDisplay").textContent = todayAttendance.checkOut ? formatTime(todayAttendance.checkOut) : "-";
+
+                // Disable check-in button if already checked in
+                checkInBtn.disabled = true;
+                checkInBtn.style.opacity = "0.5";
+
+                // Disable check-out button if already checked out
+                if (todayAttendance.checkOut) {
+                    checkOutBtn.disabled = true;
+                    checkOutBtn.style.opacity = "0.5";
+                }
+            }
+        }
+
+        function formatTime(dateTimeString) {
+            const date = new Date(dateTimeString);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function loadAttendanceHistory() {
+            const historyContainer = document.getElementById("attendanceHistoryContainer");
+            historyContainer.innerHTML = "";
+
+            // Filter attendance records for current user
+            const userAttendance = database.attendance.filter(a => a.userId === currentUser.id);
+
+            if (userAttendance.length === 0) {
+                historyContainer.innerHTML = "<p style='text-align: center; padding: 20px;'>Belum ada riwayat absensi.</p>";
+                return;
+            }
+
+            // Sort by date (newest first)
+            userAttendance.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Create history items
+            userAttendance.forEach(record => {
+                const historyItem = document.createElement("div");
+                historyItem.className = "history-item";
+
+                const dateObj = new Date(record.date);
+                const formattedDate = dateObj.toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                historyItem.innerHTML = `
+                    <p><strong>${formattedDate}</strong></p>
+                    <p>Check In: ${formatTime(record.checkIn)}</p>
+                    <p>Check Out: ${record.checkOut ? formatTime(record.checkOut) : "-"}</p>
+                    <p class="time">Lokasi: ${record.location || "-"}</p>
+                `;
+
+                historyContainer.appendChild(historyItem);
+            });
+        }
+
+        function checkIn() {
+            if (!userLocation.latitude || !userLocation.longitude) {
+                showAlert(attendanceAlert, "Tidak dapat memperoleh lokasi. Pastikan GPS aktif.", "danger");
+                return;
+            }
+
+            const now = new Date();
+            const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+
+            // Check if already checked in today
+            if (todayAttendance) {
+                showAlert(attendanceAlert, "Anda sudah melakukan check in hari ini!", "danger");
+                return;
+            }
+
+            // Create new attendance record
+            const newAttendance = {
+                id: Date.now().toString(),
+                userId: currentUser.id,
+                userName: currentUser.name,
+                date: today,
+                checkIn: now.toISOString(),
+                checkOut: null,
+                location: userLocation.address
+            };
+
+            // Add to database
+            database.attendance.push(newAttendance);
+            todayAttendance = newAttendance;
+
+            // Save to localStorage
+            localStorage.setItem("attendanceData", JSON.stringify(database.attendance));
+
+            // Update UI
+            document.getElementById("statusDisplay").textContent = "Sedang Bekerja";
+            document.getElementById("checkInTimeDisplay").textContent = formatTime(newAttendance.checkIn);
+
+            // Disable check-in button
+            checkInBtn.disabled = true;
+            checkInBtn.style.opacity = "0.5";
+
+            showAlert(attendanceAlert, "Check in berhasil!", "success");
+        }
+
+        function checkOut() {
+            if (!todayAttendance) {
+                showAlert(attendanceAlert, "Anda belum melakukan check in hari ini!", "danger");
+                return;
+            }
+
+            if (todayAttendance.checkOut) {
+                showAlert(attendanceAlert, "Anda sudah melakukan check out hari ini!", "danger");
+                return;
+            }
+
+            const now = new Date();
+
+            // Update attendance record
+            todayAttendance.checkOut = now.toISOString();
+
+            // Update in database
+            const index = database.attendance.findIndex(a => a.id === todayAttendance.id);
+            if (index !== -1) {
+                database.attendance[index] = todayAttendance;
+            }
+
+            // Save to localStorage
+            localStorage.setItem("attendanceData", JSON.stringify(database.attendance));
+
+            // Update UI
+            document.getElementById("statusDisplay").textContent = "Selesai";
+            document.getElementById("checkOutTimeDisplay").textContent = formatTime(todayAttendance.checkOut);
+
+            // Disable check-out button
+            checkOutBtn.disabled = true;
+            checkOutBtn.style.opacity = "0.5";
+
+            showAlert(attendanceAlert, "Check out berhasil!", "success");
+        }
+
+        function exportAttendanceData() {
+            // Filter attendance records for current user
+            const userAttendance = database.attendance.filter(a => a.userId === currentUser.id);
+
+            if (userAttendance.length === 0) {
+                alert("Belum ada data absensi untuk diekspor.");
+                return;
+            }
+
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+
+            // Convert data to worksheet
+            const ws = XLSX.utils.json_to_sheet(userAttendance);
+
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+
+            // Generate Excel file
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+            // Save file
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+            const fileName = `absensi_${currentUser.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            saveAs(blob, fileName);
+        }
+
+        function logout() {
+            // Clear session data
+            localStorage.removeItem("currentUser");
+            currentUser = null;
+            todayAttendance = null;
+
+            // Show login section and hide app section
+            loginSection.style.display = "block";
+            appSection.style.display = "none";
+
+            // Reset form fields
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+
+            // Reset alerts
+            loginAlert.innerHTML = "";
+        }
+
+        function showAlert(element, message, type) {
+            element.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                element.innerHTML = "";
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>
