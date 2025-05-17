@@ -467,7 +467,11 @@
                         <label>No. Karyawan</label>
                         <p id="profileIdDisplay">KRY001</p>
                     </div>
-
+                    <!-- Tambahkan ini untuk department -->
+                    <div class="form-group">
+                        <label>Departemen</label>
+                        <p id="profileDeptDisplay">-</p>
+                    </div>
                 </div>
                 <div class="form-group">
                     <button id="logoutBtn" class="btn" style="background-color: #6c757d;">Logout</button>
@@ -676,6 +680,12 @@
             document.getElementById("profileIdDisplay").textContent = currentUser.id || "-";
             document.getElementById("profileDeptDisplay").textContent = currentUser.department || "-";
 
+            // Reset tombol check in/out
+            checkInBtn.disabled = false;
+            checkInBtn.style.opacity = "1";
+            checkOutBtn.disabled = false;
+            checkOutBtn.style.opacity = "1";
+
             // Load today's attendance record
             checkTodayAttendance();
 
@@ -704,7 +714,19 @@
                 if (todayAttendance.checkOut) {
                     checkOutBtn.disabled = true;
                     checkOutBtn.style.opacity = "0.5";
+                } else {
+                    checkOutBtn.disabled = false;
+                    checkOutBtn.style.opacity = "1";
                 }
+            } else {
+                // Belum check in hari ini, reset tampilan
+                document.getElementById("statusDisplay").textContent = "Belum Check In";
+                document.getElementById("checkInTimeDisplay").textContent = "-";
+                document.getElementById("checkOutTimeDisplay").textContent = "-";
+                checkInBtn.disabled = false;
+                checkInBtn.style.opacity = "1";
+                checkOutBtn.disabled = true;
+                checkOutBtn.style.opacity = "0.5";
             }
         }
 
@@ -875,6 +897,12 @@
 
             // Reset alerts
             loginAlert.innerHTML = "";
+
+            // Reset tombol check in/out
+            checkInBtn.disabled = false;
+            checkInBtn.style.opacity = "1";
+            checkOutBtn.disabled = true;
+            checkOutBtn.style.opacity = "0.5";
         }
 
         function showAlert(element, message, type) {
